@@ -28,7 +28,7 @@ import java.util.Arrays;
 public class MenuState extends State {
     private static final String LOG_TAG = "MenuState";
 
-    public static final long BUTTON_PRESS_INTERVAL = 100;
+    private static final long BUTTON_PRESS_INTERVAL = 100;
 
     private final Sound click;
     private final Sound buy;
@@ -77,6 +77,8 @@ public class MenuState extends State {
         public void selected(int index) {
             preferences.putInteger(Prefs.SELECTED_KEY, index);
 
+            preferences.flush();
+
             click.play(DoubleJump.sound ? 1.0f : 0);
         }
 
@@ -87,10 +89,11 @@ public class MenuState extends State {
 
                 money.setValue(money.getValue() - cost);
                 String[] unlockString = preferences.getString(Prefs.UNLOCKED_KEY, "0").split(" ");
-                int[] unlocked = new int[unlockString.length];
-                for (int i = 0; i < unlockString.length; i++) {
-                    unlocked[i] = Integer.parseInt(unlockString[i]);
+                int[] unlocked = new int[unlockString.length + 1];
+                for (int i = 1; i <= unlockString.length; i++) {
+                    unlocked[i] = Integer.parseInt(unlockString[i - 1]);
                 }
+                unlocked[0] = index;
                 Arrays.sort(unlocked);
                 StringBuilder sb = new StringBuilder();
                 for (int i : unlocked) {
