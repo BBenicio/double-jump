@@ -17,6 +17,7 @@ import com.badlogic.gdx.utils.I18NBundle;
 import com.badlogic.gdx.utils.TimeUtils;
 import io.benic.doublejump.DoubleJump;
 import io.benic.doublejump.actors.Money;
+import io.benic.doublejump.games.PlayGamesListener;
 import io.benic.doublejump.utils.Ease;
 import io.benic.doublejump.utils.GameInfo;
 import io.benic.doublejump.utils.Prefs;
@@ -174,6 +175,45 @@ public class GameOverState extends State {
         money.setPosition(getWidth() - money.getWidth() - 5, -money.getHeight());
         money.setColor(DoubleJump.whiteOnBlack ? Color.BLACK : Color.WHITE);
         stage.addActor(money);
+
+        int[] skinsPlayed = Prefs.getArray(Prefs.SKINS_PLAYED_KEY, Prefs.SKINS_PLAYED_DEFAULT);
+        skinsPlayed[gameInfo.getPlayerImage()]++;
+        Prefs.putArray(Prefs.SKINS_PLAYED_KEY, skinsPlayed);
+
+        if (DoubleJump.playGames != null && DoubleJump.playGames.isSignedIn()) {
+            DoubleJump.playGames.submitScore(gameInfo.getScore());
+
+            if (gameInfo.getScore() == 0) {
+                DoubleJump.playGames.unlockAchievement(PlayGamesListener.THAT_WAS_QUICK);
+            }
+
+            if (gameInfo.getDoubleJumps() >= 10) {
+                DoubleJump.playGames.unlockAchievement(PlayGamesListener.TWO_JUMPS);
+            }
+
+            if (gameInfo.getScore() >= 20 && gameInfo.getDoubleJumps() == gameInfo.getJumps()) {
+                DoubleJump.playGames.unlockAchievement(PlayGamesListener.DOUBLE_JUMPER);
+            }
+
+            boolean chameleon = true;
+            boolean favorite = false;
+            for (int p : skinsPlayed) {
+                if (p < 10) {
+                    chameleon = false;
+                }
+                if (p > 100) {
+                    favorite = true;
+                }
+            }
+
+            if (chameleon) {
+                DoubleJump.playGames.unlockAchievement(PlayGamesListener.CHAMELEON);
+            }
+
+            if (favorite) {
+                DoubleJump.playGames.unlockAchievement(PlayGamesListener.WE_HAVE_A_WINNER);
+            }
+        }
     }
 
     @Override

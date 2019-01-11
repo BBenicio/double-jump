@@ -19,6 +19,7 @@ import com.badlogic.gdx.utils.TimeUtils;
 import io.benic.doublejump.DoubleJump;
 import io.benic.doublejump.actors.Money;
 import io.benic.doublejump.actors.Shop;
+import io.benic.doublejump.games.PlayGamesListener;
 import io.benic.doublejump.utils.Ease;
 import io.benic.doublejump.utils.Prefs;
 
@@ -88,26 +89,21 @@ public class MenuState extends State {
                 Gdx.app.log(LOG_TAG, "item " + index + " bought");
 
                 money.setValue(money.getValue() - cost);
-                String[] unlockString = preferences.getString(Prefs.UNLOCKED_KEY, "0").split(" ");
-                int[] unlocked = new int[unlockString.length + 1];
-                for (int i = 1; i <= unlockString.length; i++) {
-                    unlocked[i] = Integer.parseInt(unlockString[i - 1]);
-                }
-                unlocked[0] = index;
+                int[] temp = Prefs.getArray(Prefs.UNLOCKED_KEY, "0");
+                int[] unlocked = Arrays.copyOf(temp, temp.length + 1);
+                unlocked[temp.length] = index;
                 Arrays.sort(unlocked);
-                StringBuilder sb = new StringBuilder();
-                for (int i : unlocked) {
-                    sb.append(i);
-                    sb.append(' ');
-                }
-                sb.deleteCharAt(sb.length() - 1);
 
-                preferences.putString(Prefs.UNLOCKED_KEY, sb.toString());
+                Prefs.putArray(Prefs.UNLOCKED_KEY, unlocked);
                 preferences.putInteger(Prefs.MONEY_KEY, money.getValue());
 
                 buy.play(DoubleJump.sound ? 1.0f : 0);
 
                 preferences.flush();
+
+                if (unlocked.length == Shop.FACES && DoubleJump.playGames != null && DoubleJump.playGames.isSignedIn()) {
+                    DoubleJump.playGames.unlockAchievement(PlayGamesListener.SOLD_OUT);
+                }
 
                 return true;
             }
@@ -186,6 +182,12 @@ public class MenuState extends State {
         achievementButton.setPosition(getWidth() - leaderboardButton.getWidth() - 10 - achievementButton.getWidth(), getHeight());
         stage.addActor(achievementButton);
 
+        if (DoubleJump.playGames == null) {
+            Gdx.app.log(LOG_TAG, "no play games on this platform");
+            leaderboardButton.setVisible(false);
+            achievementButton.setVisible(false);
+        }
+
         shopButton = new Button(new Image(atlas.findRegion("shop")).getDrawable());
         shopButton.setColor(DoubleJump.whiteOnBlack ? Color.BLACK : Color.WHITE);
         shopButton.setPosition(5, -shopButton.getHeight());
@@ -193,11 +195,7 @@ public class MenuState extends State {
 
         preferences = Prefs.getPreferences();
 
-        String[] unlockString = preferences.getString(Prefs.UNLOCKED_KEY, "0").split(" ");
-        int[] unlocked = new int[unlockString.length];
-        for (int i = 0; i < unlockString.length; i++) {
-            unlocked[i] = Integer.parseInt(unlockString[i]);
-        }
+        int[] unlocked = Prefs.getArray(Prefs.UNLOCKED_KEY, "0");
         shop = new Shop(atlas, small, bundle, unlocked, shopListener, DoubleJump.rewardedAd != null && DoubleJump.adLoaded);
         shop.setSelected(preferences.getInteger(Prefs.SELECTED_KEY, 0));
         shop.setColor(DoubleJump.whiteOnBlack ? Color.WHITE : Color.BLACK);
@@ -210,6 +208,10 @@ public class MenuState extends State {
         money.setPosition(getWidth() - money.getWidth() - 5, -money.getHeight());
         money.setColor(DoubleJump.whiteOnBlack ? Color.BLACK : Color.WHITE);
         stage.addActor(money);
+
+        if (money.getValue() > 100 && DoubleJump.playGames != null && DoubleJump.playGames.isSignedIn()) {
+            DoubleJump.playGames.unlockAchievement(PlayGamesListener.RICH);
+        }
     }
 
     @Override
@@ -246,20 +248,38 @@ public class MenuState extends State {
             preferences.putBoolean(Prefs.SOUND_KEY, false);
         }
         if (TimeUtils.millis() - buttonPressTime >= BUTTON_PRESS_INTERVAL) {
-            if (leaderboardButton.isPressed()) {
+            if (leaderboardButton.isPressed() && DoubleJump.playGames.isDone()) {
                 buttonPressTime = TimeUtils.millis();
 
                 click.play(DoubleJump.sound ? 1.0f : 0);
 
                 Gdx.app.debug(LOG_TAG, "leaderboard pressed");
+                if (DoubleJump.playGames != null) {
+                    if (!DoubleJump.playGames.isSignedIn()) {
+                        DoubleJump.playGames.signIn();
+                    } else {
+                        DoubleJump.playGames.showLeaderboard();
+                    }
+                }
+
+                leaderboardButton.getClickListener().cancel();
             }
 
-            if (achievementButton.isPressed()) {
+            if (achievementButton.isPressed() && DoubleJump.playGames.isDone()) {
                 buttonPressTime = TimeUtils.millis();
 
                 click.play(DoubleJump.sound ? 1.0f : 0);
 
                 Gdx.app.debug(LOG_TAG, "achievements pressed");
+                if (DoubleJump.playGames != null) {
+                    if (!DoubleJump.playGames.isSignedIn()) {
+                        DoubleJump.playGames.signIn();
+                    } else {
+                        DoubleJump.playGames.showAchievements();
+                    }
+                }
+
+                achievementButton.getClickListener().cancel();
             }
 
             if (shopButton.isPressed() && shopClick == -1) {
@@ -328,6 +348,10 @@ public class MenuState extends State {
     }
 
     public void reward() {
+        if (money.getValue() > 100) {
+            DoubleJump.playGames.unlockAchievement(PlayGamesListener.RICH);
+        }
+
         money.setValue(money.getValue() + shop.getVideoValue());
         preferences.putInteger(Prefs.MONEY_KEY, money.getValue());
 

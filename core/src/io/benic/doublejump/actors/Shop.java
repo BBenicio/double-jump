@@ -17,11 +17,11 @@ import java.util.Arrays;
 public class Shop extends Table {
     private static final String LOG_TAG = "Shop";
 
-    public static final int[] UNLOCKS = new int[] { 0, 5, 10, 20, 40, 50, 60, 70, 80, 100, 150, 200 };
+    private static final int[] UNLOCKS = new int[] { 0, 5, 10, 20, 40, 50, 60, 70, 80, 100, 150, 200 };
 
-    private static final int FACES = 12;
+    public static final int FACES = 12;
     private static final int ROWS = 3;
-    public static final float SIZE = 100.0f;
+    private static final float SIZE = 100.0f;
 
     private final String videoString;
     private final String noVideoString;

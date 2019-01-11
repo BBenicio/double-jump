@@ -1,5 +1,6 @@
 package io.benic.doublejump;
 
+import android.content.Intent;
 import android.os.Bundle;
 import com.badlogic.gdx.backends.android.AndroidApplication;
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration;
@@ -8,7 +9,7 @@ import com.google.android.gms.ads.MobileAds;
 
 public class AndroidLauncher extends AndroidApplication {
 	private AdListener adListener;
-
+	private PlayGames playGames;
 
 	@Override
 	protected void onCreate (Bundle savedInstanceState) {
@@ -24,11 +25,13 @@ public class AndroidLauncher extends AndroidApplication {
 		initialize(doubleJump, config);
 
 		adListener = new AdListener(this, doubleJump);
+		playGames = new PlayGames(this, doubleJump);
 	}
 
 	@Override
 	protected void onResume() {
 		adListener.onResume();
+		playGames.silentSignIn();
 
 		super.onResume();
 	}
@@ -45,5 +48,16 @@ public class AndroidLauncher extends AndroidApplication {
 		adListener.onDestroy();
 
 		super.onDestroy();
+	}
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
+
+		if (requestCode == PlayGames.RC_SIGN_IN) {
+			playGames.signInResult(data);
+		} else if (requestCode == PlayGames.RC_UNUSED) {
+			playGames.otherResult();
+		}
 	}
 }

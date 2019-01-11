@@ -14,9 +14,16 @@ import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.utils.I18NBundle;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import io.benic.doublejump.ads.RewardedAd;
+import io.benic.doublejump.games.PlayGamesListener;
 import io.benic.doublejump.states.*;
 import io.benic.doublejump.utils.Prefs;
 
+
+/* IDEAS LIST
+ * Consumables: slow time, mario star
+ * Extra life: when you die you can buy an extra life for (5*d + s/2) where d = deaths and s = score
+ * Milestone Bonus: bonus in coins for when you reach a certain score
+ */
 
 public class DoubleJump extends ApplicationAdapter {
     public static final String NAME = "io.benic.doublejump";
@@ -28,6 +35,7 @@ public class DoubleJump extends ApplicationAdapter {
     public static boolean whiteOnBlack = true;
 
     public static RewardedAd rewardedAd = null;
+    public static PlayGamesListener playGames = null;
     public static boolean adLoaded = false;
 
     private static final String LOG_TAG = "DoubleJump";

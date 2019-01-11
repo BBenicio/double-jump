@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Google Play game services IDs.
+Save this file as res/values/games-games-ids.xml in your project.
+-->
+<resources>
+    <!-- app_id -->
+    <string name="app_id" translatable="false">1043000019604</string>
+    <!-- package_name -->
+    <string name="package_name" translatable="false">io.benic.doublejump</string>
+    <!-- achievement That was quick -->
+    <string name="achievement_that_was_quick" translatable="false">CgkIlJWVva0eEAIQAg</string>
+    <!-- achievement Two Jumps -->
+    <string name="achievement_two_jumps" translatable="false">CgkIlJWVva0eEAIQAw</string>
+    <!-- achievement Double Jumper -->
+    <string name="achievement_double_jumper" translatable="false">CgkIlJWVva0eEAIQBA</string>
+    <!-- achievement Rich -->
+    <string name="achievement_rich" translatable="false">CgkIlJWVva0eEAIQBQ</string>
+    <!-- achievement Sold out! -->
+    <string name="achievement_sold_out" translatable="false">CgkIlJWVva0eEAIQBg</string>
+    <!-- achievement Chameleon -->
+    <string name="achievement_chameleon" translatable="false">CgkIlJWVva0eEAIQBw</string>
+    <!-- achievement We have a winner! -->
+    <string name="achievement_we_have_a_winner" translatable="false">CgkIlJWVva0eEAIQCA</string>
+    <!-- leaderboard High Scores -->
+    <string name="leaderboard_high_scores" translatable="false">CgkIlJWVva0eEAIQAQ</string>
+</resources>
