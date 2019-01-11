@@ -88,7 +88,12 @@ public class PlayGames implements PlayGamesListener {
         Gdx.app.log(LOG_TAG, "trying silent sign in");
         done = false;
 
-        signInClient.silentSignIn().addOnSuccessListener(signInSuccess).addOnFailureListener(signInFail);
+        launcher.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                signInClient.silentSignIn().addOnSuccessListener(signInSuccess).addOnFailureListener(signInFail);
+            }
+        });
     }
 
     @Override
@@ -120,9 +125,14 @@ public class PlayGames implements PlayGamesListener {
     }
 
     @Override
-    public void unlockAchievement(String name) {
+    public void unlockAchievement(final String name) {
         Gdx.app.log(LOG_TAG, "unlock an achievement");
-        achievementsClient.unlock(name);
+        launcher.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                achievementsClient.unlock(name);
+            }
+        });
     }
 
     @Override

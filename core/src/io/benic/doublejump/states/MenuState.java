@@ -209,7 +209,7 @@ public class MenuState extends State {
         money.setColor(DoubleJump.whiteOnBlack ? Color.BLACK : Color.WHITE);
         stage.addActor(money);
 
-        if (money.getValue() > 100 && DoubleJump.playGames != null && DoubleJump.playGames.isSignedIn()) {
+        if (money.getValue() >= 100 && DoubleJump.playGames != null && DoubleJump.playGames.isSignedIn()) {
             DoubleJump.playGames.unlockAchievement(PlayGamesListener.RICH);
         }
     }
@@ -348,13 +348,13 @@ public class MenuState extends State {
     }
 
     public void reward() {
-        if (money.getValue() > 100) {
-            DoubleJump.playGames.unlockAchievement(PlayGamesListener.RICH);
-        }
-
         money.setValue(money.getValue() + shop.getVideoValue());
         preferences.putInteger(Prefs.MONEY_KEY, money.getValue());
 
         preferences.flush();
+
+        if (money.getValue() >= 100) {
+            DoubleJump.playGames.unlockAchievement(PlayGamesListener.RICH);
+        }
     }
 }
