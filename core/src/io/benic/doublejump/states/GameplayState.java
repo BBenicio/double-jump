@@ -5,6 +5,7 @@ import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.ParticleEffect;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
@@ -12,6 +13,9 @@ import com.badlogic.gdx.scenes.scene2d.InputListener;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Button;
 import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.utils.Align;
+import com.badlogic.gdx.utils.I18NBundle;
 import com.badlogic.gdx.utils.TimeUtils;
 import io.benic.doublejump.DoubleJump;
 import io.benic.doublejump.actors.ObstacleManager;
@@ -27,6 +31,8 @@ public class GameplayState extends State {
 
     private static final long COLOR_CHANGE_INTERVAL = 20000;
 //    private static final long COLOR_CHANGE_INTERVAL = 4000;
+    public static final float TUTORIAL_FIRST_PAUSE = 5.280f;
+    public static final float TUTORIAL_SECOND_PAUSE = 5.750f;
 
     private Image ground;
     private Player player;
@@ -45,7 +51,13 @@ public class GameplayState extends State {
 
     private long changeTime;
     private boolean changingColors = false;
-    private boolean goingBlackonWhite = false;
+    private boolean goingBlackOnWhite = false;
+
+    private Label tutorialLabel;
+    private String[] tutorialTexts = new String[2];
+    private float tutorialTimer = 0;
+    private int tutorialState = 0;
+    private boolean tutorialPause = false;
 
     private boolean paused = false;
     private long pauseTime = -1;
@@ -71,17 +83,26 @@ public class GameplayState extends State {
     private InputListener inputListener = new InputListener() {
         @Override
         public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
-            if (paused || pauseButton.isOver()) {
+            if (!tutorialPause && (paused || pauseButton.isOver())) {
                 return false;
             }
 
-            if (player.canJump()) {
+            if (player.canJump() && tutorialState > 0) {
                 player.jump();
                 jumpSound.play(DoubleJump.sound ? 1.0f / player.getJumpCount(): 0);
                 if (player.getJumpCount() == 2) {
                     gameInfo.setDoubleJumps(gameInfo.getDoubleJumps() + 1);
                 } else {
                     gameInfo.setJumps(gameInfo.getJumps() + 1);
+                }
+
+                if (tutorialPause) {
+                    tutorialPause = false;
+                    tutorialLabel.setVisible(false);
+                    if (tutorialState == 1) {
+                        tutorialLabel.setText(tutorialTexts[tutorialState]);
+                        // tutorialLabel.setX(getWidth() / 2 - tutorialLabel.getWidth() - 15);
+                    }
                 }
             }
             return true;
@@ -105,6 +126,10 @@ public class GameplayState extends State {
     public void start() {
         final Stage stage = getStage();
         final TextureAtlas atlas = assetManager.get("packed/pack.atlas");
+        final I18NBundle bundle = assetManager.get("lang/strings");
+        final BitmapFont medium = assetManager.get("fonts/medium.fnt");
+
+        tutorialState = Prefs.getPreferences().getInteger("tutorial", 0);
 
         changeTime = TimeUtils.millis();
 
@@ -148,7 +173,15 @@ public class GameplayState extends State {
         obstacleManager.setup(gameInfo);
         stage.addActor(obstacleManager);
 
-        DoubleJump.whiteOnBlack = goingBlackonWhite = !DoubleJump.whiteOnBlack;
+        tutorialTexts[0] = bundle.get("tut_0");
+        tutorialTexts[1] = bundle.get("tut_1");
+        tutorialLabel = new Label(tutorialTexts[0], new Label.LabelStyle(medium, DoubleJump.whiteOnBlack ? Color.WHITE : Color.BLACK));
+        tutorialLabel.setPosition(getWidth() / 2 - tutorialLabel.getWidth() - 15, getHeight() / 2);
+        tutorialLabel.setAlignment(Align.right, Align.center);
+        tutorialLabel.setVisible(false);
+        stage.addActor(tutorialLabel);
+
+        DoubleJump.whiteOnBlack = goingBlackOnWhite = !DoubleJump.whiteOnBlack;
         updateColors(1000);
 
         jumpSound = assetManager.get("sound/jump.wav");
@@ -184,7 +217,7 @@ public class GameplayState extends State {
             }
         }
 
-        if (paused) {
+        if (paused || tutorialPause) {
             return;
         }
 
@@ -212,7 +245,7 @@ public class GameplayState extends State {
         if (now - changeTime >= COLOR_CHANGE_INTERVAL) {
             changeTime = now;
             changingColors = true;
-            goingBlackonWhite = DoubleJump.whiteOnBlack;
+            goingBlackOnWhite = DoubleJump.whiteOnBlack;
             Gdx.app.log(LOG_TAG, "Changing colors");
         }
 
@@ -227,16 +260,31 @@ public class GameplayState extends State {
         }
 
         gameInfo.setScore(previousScore + obstacleManager.getPassed());
+
+        tutorialTimer += Gdx.graphics.getRawDeltaTime();
+        if (tutorialState == 0 && tutorialTimer > TUTORIAL_FIRST_PAUSE) {
+            tutorialPause = true;
+            ++tutorialState;
+            tutorialLabel.setVisible(true);
+            Gdx.app.log(LOG_TAG, "First tutorial pause");
+        } else if (tutorialState == 1 && tutorialTimer > TUTORIAL_SECOND_PAUSE) {
+            if (player.canJump()) {
+                tutorialPause = true;
+                tutorialLabel.setVisible(true);
+                Gdx.app.log(LOG_TAG, "Final tutorial pause");
+            }
+            ++tutorialState;
+        }
     }
 
     private boolean updateColors(long elapsed) {
         final float percentage = Math.min(elapsed / 1000.0f, 1f);
 
         if (percentage > 0.5f) {
-            if (DoubleJump.whiteOnBlack && goingBlackonWhite) {
+            if (DoubleJump.whiteOnBlack && goingBlackOnWhite) {
                 Gdx.app.log(LOG_TAG, "Now black on white");
                 DoubleJump.whiteOnBlack = false;
-            } else if (!DoubleJump.whiteOnBlack && !goingBlackonWhite) {
+            } else if (!DoubleJump.whiteOnBlack && !goingBlackOnWhite) {
                 Gdx.app.log(LOG_TAG, "Now white on black");
                 DoubleJump.whiteOnBlack = true;
             }
@@ -244,7 +292,7 @@ public class GameplayState extends State {
 
         Color bgColor;
 
-        if (goingBlackonWhite) {
+        if (goingBlackOnWhite) {
             bgColor = getClearColor();
             bgColor.r = bgColor.g = bgColor.b = percentage;
             setClearColor(bgColor);

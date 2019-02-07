@@ -214,6 +214,8 @@ public class GameOverState extends State {
                 DoubleJump.playGames.unlockAchievement(PlayGamesListener.WE_HAVE_A_WINNER);
             }
         }
+
+        Prefs.getPreferences().putInteger("tutorial", 2);
     }
 
     @Override

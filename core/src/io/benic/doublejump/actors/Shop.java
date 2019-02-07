@@ -4,10 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.math.MathUtils;
-import com.badlogic.gdx.scenes.scene2d.ui.Image;
-import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
-import com.badlogic.gdx.scenes.scene2d.ui.Table;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
+import com.badlogic.gdx.scenes.scene2d.ui.*;
 import com.badlogic.gdx.scenes.scene2d.utils.NinePatchDrawable;
 import com.badlogic.gdx.utils.I18NBundle;
 
@@ -21,6 +18,7 @@ public class Shop extends Table {
 
     public static final int FACES = 12;
     private static final int ROWS = 3;
+    private static final int COLUMNS = FACES / ROWS;
     private static final float SIZE = 100.0f;
 
     private final String videoString;
@@ -37,23 +35,39 @@ public class Shop extends Table {
 
     private Image bg;
 
-    final private NinePatchDrawable buttonBg;
-    final NinePatchDrawable buttonDownBg;
+    private TextButton[] tabButtons = new TextButton[2];
+    private int tab = 0;
+    private ButtonGroup<TextButton> tabs;
+
+    private Container<Table> content;
+    private Table skins;
+    private Table consumables;
 
     private ShopListener listener;
 
 
     public Shop(TextureAtlas atlas, BitmapFont font, I18NBundle bundle, int[] unlocked, ShopListener shopListener, boolean videoAvailable) {
-//        setDebug(true);
+        // setDebug(true);
 
         bg = new Image(atlas.createPatch("bg_opaque"));
-        bg.setSize(SIZE * FACES / ROWS, SIZE * ROWS);
+        bg.setSize(SIZE * COLUMNS, SIZE * ROWS + SIZE / 2);
         bg.setPosition(-bg.getWidth() / 2, -bg.getHeight() / 2);
         addActor(bg);
 
-        buttonBg = new NinePatchDrawable(atlas.createPatch("background"));
-        buttonDownBg = new NinePatchDrawable(atlas.createPatch("background_down"));
+        final NinePatchDrawable buttonBg = new NinePatchDrawable(atlas.createPatch("background"));
+        final NinePatchDrawable buttonDownBg = new NinePatchDrawable(atlas.createPatch("background_down"));
 
+        /*tabs = new ButtonGroup<TextButton>();
+        tabButtons[0] = new TextButton("Skins", new TextButton.TextButtonStyle(buttonBg, null, buttonDownBg, font));
+        tabButtons[1] = new TextButton("Consumables", new TextButton.TextButtonStyle(buttonBg, null, buttonDownBg, font));
+        tabs.add(tabButtons[0]);
+        tabs.add(tabButtons[1]);
+        add(tabButtons[0]).colspan(COLUMNS / 2).height(40).fill();
+        add(tabButtons[1]).colspan(COLUMNS / 2).height(40).fill();
+        row();*/
+
+        skins = new Table();
+        content = new Container<Table>(skins);
         for (int i = 0; i < FACES; i++) {
             final Image image = new Image(atlas.findRegion("player", i));
 
@@ -66,19 +80,18 @@ public class Shop extends Table {
                 tint[i].setSize(SIZE, SIZE);
                 buttons[i].addActor(tint[i]);
 
-//                costs[i] = new Label(Integer.toString(UNLOCKS[i]), new Label.LabelStyle(font, DoubleJump.whiteOnBlack ? Color.WHITE : Color.BLACK));
-//                costs[i].setAlignment(Align.center);
-//                costs[i].setWidth(SIZE);
-//                costs[i].setY(5);
                 costs[i] = new Money(font, atlas.findRegion("box"), UNLOCKS[i]);
                 costs[i].setPosition(SIZE / 2 - costs[i].getWidth() / 2, 5);
                 buttons[i].addActor(costs[i]);
             }
 
-            add(buttons[i]).size(SIZE).fill();
-//            if (i == FACES / 2 - 1) row();
-            if ((i + 1) % (FACES / ROWS) == 0) row();
+            skins.add(buttons[i]).size(SIZE).fill();
+            if ((i + 1) % (FACES / ROWS) == 0) skins.row();
         }
+
+
+        add(content).colspan(COLUMNS);
+        row();
 
         videoString = bundle.get("video");
         noVideoString = bundle.get("no_video");
@@ -92,10 +105,7 @@ public class Shop extends Table {
 
         add(video).colspan(4).height(SIZE / 2).fill();
 
-        bg.setSize(SIZE * FACES / ROWS, ROWS * SIZE + (SIZE / 2));
-        bg.setPosition(-bg.getWidth() / 2, -bg.getHeight() / 2);
-
-        setVideoAvailable(videoAvailable);
+        setVideoAvailable(videoAvailable, 10);
 
         listener = shopListener;
     }
@@ -124,6 +134,11 @@ public class Shop extends Table {
     @Override
     public void act(float delta) {
         super.act(delta);
+
+        /*if (tabs.getCheckedIndex() != tab) {
+            Gdx.app.log(LOG_TAG, "change tab to " + tabs.getCheckedIndex());
+            tab = tabs.getCheckedIndex();
+        }*/
 
         if (!buttons[selected].isChecked()) {
             buttons[selected].setChecked(true);
@@ -161,6 +176,15 @@ public class Shop extends Table {
         } else {
             video.setText(noVideoString);
         }
+    }
+
+    public void setVideoAvailable(boolean videoAvailable, int value) {
+        setVideoAvailable(videoAvailable);
+        videoValue.setValue(value);
+    }
+
+    public boolean containsPoint(float x, float y) {
+        return x >= getX() && x <= getRight() && y >= getY() && y <= getTop();
     }
 
     public interface ShopListener {

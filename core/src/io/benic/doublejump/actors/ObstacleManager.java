@@ -11,30 +11,30 @@ import io.benic.doublejump.utils.Utils;
 
 public class ObstacleManager extends Group {
     private static final String LOG_TAG = "ObstacleManager";
-    
+
     private static final float MIN_SPEED = 100;
     private static final float MAX_SPEED = 650;
     private static final float SPEED_INCREASE = 10;
     private static final float MIN_SPAWN_INTERVAL = 1.3f;
     private static final float MAX_SPAWN_INTERVAL = 2.5f;
     private static final float SPAWN_INTERVAL_DECREASE = 0.02f;
-    
+
     private float countChances[] = new float[] { 100, 0, 0 };
     private float positionChances[] = new float[] { 100, 0, 0, 0 } ;
-    
+
     private final Pool<Obstacle> obstaclePool;
     private Array<Obstacle> obstacleArray;
-    
+
     private float spawnInterval;
     private float sinceLastSpawn;
     private float speed;
-    
+
     private boolean done;
-    
+
     private int passed = 0;
-    
+
     private float[] temp = new float[4];
-    
+
     public ObstacleManager(final TextureRegion texture) {
         obstaclePool = new Pool<Obstacle>() {
             @Override
@@ -43,13 +43,13 @@ public class ObstacleManager extends Group {
             }
         };
         obstacleArray = new Array<Obstacle>();
-        
+
         spawnInterval = MAX_SPAWN_INTERVAL;
         sinceLastSpawn = 0;
-        
+
         speed = MIN_SPEED;
     }
-    
+
     public void setup(GameInfo gameInfo) {
         if (gameInfo.isContinued()) {
             countChances = gameInfo.getCountChances();
@@ -63,7 +63,7 @@ public class ObstacleManager extends Group {
             gameInfo.setSpeed(speed);
         }
     }
-    
+
     @Override
     public void setColor(float r, float g, float b, float a) {
         for (Obstacle obstacle : obstacleArray) {
@@ -71,11 +71,11 @@ public class ObstacleManager extends Group {
         }
         super.setColor(r, g, b, a);
     }
-    
+
     @Override
     public void act(float delta) {
         super.act(delta);
-    
+
         int len = obstacleArray.size;
         for (int i = len; --i >= 0;) {
             Obstacle obstacle = obstacleArray.get(i);
@@ -90,12 +90,12 @@ public class ObstacleManager extends Group {
                 ++passed;
             }
         }
-        
+
         if (done) {
             super.act(delta); // 2x speed
             return;
         }
-        
+
         sinceLastSpawn += delta;
         if (sinceLastSpawn >= spawnInterval) {
             spawn();
@@ -108,16 +108,16 @@ public class ObstacleManager extends Group {
             }
         }
     }
-    
+
     private void spawn() {
         int count = Utils.weightedChoice(countChances) + 1; // [1, 3]
         System.arraycopy(positionChances, 0, temp, 0, temp.length);
-        
+
         for (int i = 0; i < count; ++i) {
             int p = Utils.weightedChoice(temp);
             temp[p] = Float.NaN;
         }
-        
+
         for (int pos = 0; pos < 4; ++pos) {
             if (Float.isNaN(temp[pos])) {
                 Obstacle obstacle = obstaclePool.obtain();
@@ -130,10 +130,10 @@ public class ObstacleManager extends Group {
                 obstacleArray.add(obstacle);
             }
         }
-        
+
         updateChances();
     }
-    
+
     private void updateChances() {
         if (countChances[0] > 0) {
             countChances[0] -= 10;
@@ -142,7 +142,7 @@ public class ObstacleManager extends Group {
             countChances[1] -= 10;
             countChances[2] += 10;
         }
-    
+
         if (positionChances[0] > 25) {
             positionChances[0] -= 7.5;
             positionChances[1] += 2.5;
@@ -150,11 +150,11 @@ public class ObstacleManager extends Group {
             positionChances[3] += 2.5;
         }
     }
-    
+
     public void setDone(boolean done) {
         this.done = done;
     }
-    
+
     public boolean playerOverlaps(Player player) {
         for (int i = 0; i < obstacleArray.size; ++i) {
             Obstacle obstacle = obstacleArray.get(i);
@@ -167,14 +167,14 @@ public class ObstacleManager extends Group {
                 return true;
             }
         }
-        
+
         return false;
     }
-    
+
     public boolean isOver() {
         return done && obstacleArray.size == 0;
     }
-    
+
     public int getPassed() {
         return passed;
     }

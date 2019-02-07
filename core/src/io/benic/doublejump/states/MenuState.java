@@ -69,6 +69,10 @@ public class MenuState extends State {
             if (!going && !shopOpen && y > shopButton.getY() + shopButton.getHeight() && y < soundButton.getY()) {
                 going = true;
                 StateManager.changeState(new GameplayState(assetManager));
+            } else if (shopOpen && shopClick + BUTTON_PRESS_INTERVAL < TimeUtils.millis() && !shop.containsPoint(x, y)) {
+                shopClick = buttonPressTime = TimeUtils.millis();
+                click.play(DoubleJump.sound ? 1.0f : 0);
+                shopOpen = false;
             }
         }
     };
@@ -291,7 +295,7 @@ public class MenuState extends State {
                 shopOpen = !shopOpen;
 
                 if (shopOpen && DoubleJump.rewardedAd != null) {
-                    shop.setVideoAvailable(DoubleJump.adLoaded);
+                    shop.setVideoAvailable(DoubleJump.adLoaded, 10);
                 }
             }
         }
@@ -347,7 +351,7 @@ public class MenuState extends State {
         }
     }
 
-    public void reward() {
+    public void reward(int value) {
         money.setValue(money.getValue() + shop.getVideoValue());
         preferences.putInteger(Prefs.MONEY_KEY, money.getValue());
 

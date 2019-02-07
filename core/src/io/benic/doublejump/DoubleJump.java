@@ -20,9 +20,10 @@ import io.benic.doublejump.utils.Prefs;
 
 
 /* IDEAS LIST
- * Consumables: slow time, mario star
+ * Consumables: slow time, mario star, coin multiplier
  * Extra life: when you die you can buy an extra life for (5*d + s/2) where d = deaths and s = score
  * Milestone Bonus: bonus in coins for when you reach a certain score
+ * Test a different approach to spawning blocks
  */
 
 public class DoubleJump extends ApplicationAdapter {
@@ -45,6 +46,7 @@ public class DoubleJump extends ApplicationAdapter {
     private Preferences preferences;
 
     private boolean processReward = false;
+    private int rewardValue = 0;
 
     private void enqueueLoad() {
         assetManager.load("packed/pack.atlas", TextureAtlas.class);
@@ -98,7 +100,7 @@ public class DoubleJump extends ApplicationAdapter {
         if (processReward) {
             State s = stateManager.getCurrentState();
             if (s instanceof MenuState) {
-                ((MenuState) s).reward();
+                ((MenuState) s).reward(rewardValue);
             } else if (s instanceof GameOverState) {
                 ((GameOverState) s).reward();
             }
@@ -123,8 +125,9 @@ public class DoubleJump extends ApplicationAdapter {
         assetManager.dispose();
     }
 
-    public void reward() {
+    public void reward(int value) {
         processReward = true;
+        rewardValue = value;
     }
 
     public void videoLoaded(boolean loaded) {

@@ -56,7 +56,7 @@ public class AdListener implements RewardedVideoAdListener, RewardedAd {
     @Override
     public void onRewarded(RewardItem rewardItem) {
         Gdx.app.log(LOG_TAG, "video rewarded " + rewardItem.getAmount() + " " + rewardItem.getType());
-        doubleJump.reward();
+        doubleJump.reward(rewardItem.getAmount());
     }
 
     @Override
