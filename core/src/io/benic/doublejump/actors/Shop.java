@@ -99,7 +99,7 @@ public class Shop extends Table {
         video = new TextButton(videoString, new TextButton.TextButtonStyle(buttonBg, buttonDownBg, null, font));
 //        video.getLabel().setAlignment(Align.left);
         video.getLabel().moveBy(10, 0);
-        videoValue = new Money(font, atlas.findRegion("box"), MathUtils.random(10, 20));
+        videoValue = new Money(font, atlas.findRegion("box"), MathUtils.random(10, 15));
         videoValue.setPosition(SIZE * FACES / ROWS - 10 - videoValue.getWidth(), SIZE / 4 - videoValue.getHeight() / 2);
         video.addActor(videoValue);
 
@@ -172,7 +172,7 @@ public class Shop extends Table {
         videoValue.setVisible(videoAvailable);
         if (videoAvailable) {
             video.setText(videoString);
-            videoValue.setValue(MathUtils.random(10, 20));
+            videoValue.setValue(MathUtils.random(10, 15));
         } else {
             video.setText(noVideoString);
         }

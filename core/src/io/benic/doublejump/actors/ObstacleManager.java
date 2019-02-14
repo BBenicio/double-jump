@@ -1,10 +1,12 @@
 package io.benic.doublejump.actors;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Pool;
+import com.badlogic.gdx.utils.TimeUtils;
 import io.benic.doublejump.utils.GameInfo;
 import io.benic.doublejump.utils.Utils;
 
@@ -28,6 +30,9 @@ public class ObstacleManager extends Group {
     private float spawnInterval;
     private float sinceLastSpawn;
     private float speed;
+
+    private long startTime = 0;
+    private float firstSpawnTime = Float.POSITIVE_INFINITY;
 
     private boolean done;
 
@@ -62,6 +67,7 @@ public class ObstacleManager extends Group {
             gameInfo.setSpawnInterval(spawnInterval);
             gameInfo.setSpeed(speed);
         }
+        startTime = TimeUtils.millis();
     }
 
     @Override
@@ -110,6 +116,10 @@ public class ObstacleManager extends Group {
     }
 
     private void spawn() {
+        if (Float.isInfinite(firstSpawnTime)) {
+            firstSpawnTime = (TimeUtils.millis() - startTime) / 1000.0f;
+            Gdx.app.log(LOG_TAG, "First spawn at " + firstSpawnTime);
+        }
         int count = Utils.weightedChoice(countChances) + 1; // [1, 3]
         System.arraycopy(positionChances, 0, temp, 0, temp.length);
 
@@ -177,5 +187,9 @@ public class ObstacleManager extends Group {
 
     public int getPassed() {
         return passed;
+    }
+
+    public float getFirstSpawnTime() {
+        return firstSpawnTime;
     }
 }

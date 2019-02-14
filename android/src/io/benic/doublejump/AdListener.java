@@ -94,10 +94,9 @@ public class AdListener implements RewardedVideoAdListener, RewardedAd {
 
     @Override
     public void loadVideo() {
-        // Continuar: ca-app-pub-2833633163238735/5104982676
         // Dinheiro: ca-app-pub-2833633163238735/6531536999
         // Google test: ca-app-pub-3940256099942544/5224354917
-        rewardedVideoAd.loadAd("ca-app-pub-3940256099942544/5224354917", new AdRequest.Builder().addTestDevice("F0698981F98B091004BACD37D6954B52").build());
+        rewardedVideoAd.loadAd("ca-app-pub-2833633163238735/6531536999", new AdRequest.Builder().addTestDevice("F0698981F98B091004BACD37D6954B52").build());
     }
 
     @Override

@@ -16,6 +16,7 @@ public class Prefs {
     public static final String SELECTED_KEY = "selected";
     public static final String UNLOCKED_KEY = "unlocked";
     public static final String SKINS_PLAYED_KEY = "skins";
+    public static final String TUTORIAL_KEY = "tutorial";
 
     public static final boolean SOUND_DEFAULT = true;
     public static final String SKINS_PLAYED_DEFAULT = "0 0 0 0 0 0 0 0 0 0 0 0";

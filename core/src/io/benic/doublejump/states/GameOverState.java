@@ -34,10 +34,10 @@ public class GameOverState extends State {
     private Label scoreLabel;
     private Image highScore;
 
-//    private TextButton menuButton;
     private Button menuButton;
     private Image continueImage;
     private TextButton continueButton;
+    private Money continueCost;
     private Image restartImage;
     private TextButton restartButton;
 
@@ -112,8 +112,6 @@ public class GameOverState extends State {
 
         final NinePatchDrawable buttonBg = new NinePatchDrawable(atlas.createPatch("background"));
         final NinePatchDrawable buttonDownBg = new NinePatchDrawable(atlas.createPatch("background_down"));
-//        final Image buttonBg = new Image(atlas.findRegion("button_bg"));
-//        final Image buttonDownBg = new Image(atlas.findRegion("button_down_bg"));
         final TextButton.TextButtonStyle style = new TextButton.TextButtonStyle(buttonBg, buttonDownBg, null,
                                                                                 small);
         style.fontColor = fgColor;
@@ -124,27 +122,35 @@ public class GameOverState extends State {
         continueButton.setHeight(BUTTON_HEIGHT);
         continueButton.setOrigin(continueButton.getWidth() / 2, continueButton.getHeight() / 2);
         continueButton.setColor(fgColor);
-//        continueButton.setPosition((getWidth() - continueButton.getWidth()) / 2, 0);
         continueButton.setPosition(10, -continueButton.getHeight());
         continueButtonX = continueButton.getX();
-        if (gameInfo.isContinued() || !DoubleJump.adLoaded) {
-            continueButton.setDisabled(true);
-            continueButton.setVisible(false);
-        }
         stage.addActor(continueButton);
 
         continueImage = new Image(atlas.findRegion("video"));
         continueImage.setPosition(4, BUTTON_IMAGE_Y);
         continueImage.setColor(fgColor);
         continueButton.addActor(continueImage);
-//        stage.addActor(continueImage);
 
-//        menuButton = new TextButton(bundle.get("menu"), style);
+        int cost = 5 * gameInfo.getDeaths() + gameInfo.getScore() / 2;
+        continueCost = new Money(small, atlas.findRegion("box"), cost - cost % 5);
+        continueCost.setPosition(continueButton.getWidth() - continueCost.getWidth() - 10, BUTTON_HEIGHT / 2 - continueCost.getHeight() / 2);
+        continueCost.setColor(fgColor);
+        continueButton.addActor(continueCost);
+
+        if (continueCost.getValue() > moneyAmount) {
+            if (!DoubleJump.adLoaded) {
+                continueButton.setDisabled(true);
+                continueButton.setVisible(false);
+            } else {
+                continueCost.setVisible(false);
+            }
+        } else {
+            continueImage.setVisible(false);
+        }
+
         final Image menuImage = new Image(atlas.findRegion("home"));
         menuButton = new Button(menuImage.getDrawable());
-//        menuButton.setOrigin(menuButton.getWidth() / 2, menuButton.getHeight() / 2);
         menuButton.setColor(fgColor);
-//        menuButton.setPosition(continueButton.getX() - menuButton.getWidth() - (getWidth() / 64), 0);
         menuButton.setPosition(0, getHeight());
         stage.addActor(menuButton);
 
@@ -154,7 +160,6 @@ public class GameOverState extends State {
         restartButton.setHeight(BUTTON_HEIGHT);
         restartButton.setOrigin(restartButton.getWidth() / 2, restartButton.getHeight() / 2);
         restartButton.setColor(fgColor);
-//        restartButton.setPosition(continueButton.getRight() + (getWidth() / 64), 0);
         restartButton.setPosition(getWidth() - restartButton.getWidth() - 10, -restartButton.getHeight());
         restartButtonX = restartButton.getX();
         stage.addActor(restartButton);
@@ -163,14 +168,12 @@ public class GameOverState extends State {
         restartImage.setPosition(4, BUTTON_IMAGE_Y);
         restartImage.setColor(fgColor);
         restartButton.addActor(restartImage);
-//        stage.addActor(restartImage);
 
         ground = new Image(atlas.findRegion("box"));
         ground.setColor(1 - bgColor.r, 1 - bgColor.g, 1 - bgColor.b, 1);
         ground.setSize(getWidth(), 100);
         stage.addActor(ground);
 
-        // money = new Money(small, atlas.findRegion("box"), preferences.getInteger(Prefs.MONEY_KEY, 0));
         money = new Money(small, atlas.findRegion("box"), moneyAmount);
         money.setPosition(getWidth() - money.getWidth() - 5, -money.getHeight());
         money.setColor(DoubleJump.whiteOnBlack ? Color.BLACK : Color.WHITE);
@@ -215,7 +218,7 @@ public class GameOverState extends State {
             }
         }
 
-        Prefs.getPreferences().putInteger("tutorial", 2);
+        preferences.putInteger(Prefs.TUTORIAL_KEY, 2);
     }
 
     @Override
@@ -229,20 +232,12 @@ public class GameOverState extends State {
             gameOver.setY(Ease.bounceOut.apply(getHeight(), getHeight() - gameOver.getHeight() - 16, elapsed / 750.0f));
             scoreLabel.setX(Ease.bounceOut.apply(-scoreLabel.getWidth(), getWidth() - 100 - scoreLabel.getWidth(), elapsed / 750.0f));
             money.setY(Ease.quadIn.apply(-money.getHeight(), 5, Math.min(elapsed / 400.0f, 1.0f)));
-            /*play.setY(Ease.elasticInOut.apply(0, ground.getHeight() + 10, Math.min(elapsed / 400.0f, 1.0f)));
-            soundButton.setY(Ease.quadIn.apply(getHeight(), getHeight() - 24, Math.min(elapsed / 400.0f, 1.0f)));
-            leaderboardButton.setY(Ease.quadIn.apply(getHeight(), getHeight() - 24, Math.min(elapsed / 400.0f, 1.0f)));
-            achievementButton.setY(Ease.quadIn.apply(getHeight(), getHeight() - 24, Math.min(elapsed / 400.0f, 1.0f)));*/
         } else if (!done) {
             done = true;
             buttonStartTime = now;
 
             gameOver.setY(getHeight() - gameOver.getHeight() - 16);
             scoreLabel.setX(getWidth() - 100 - scoreLabel.getWidth());
-            /*play.setY(ground.getHeight() + 10);
-            soundButton.setY(getHeight() - 24);
-            leaderboardButton.setY(getHeight() - 24);
-            achievementButton.setY(getHeight() - 24);*/
         }
 
         if (buttonStartTime != -1) {
@@ -284,22 +279,29 @@ public class GameOverState extends State {
             restarting = false;
             StateManager.changeState(new MenuState(assetManager));
         } else if (!menu && !continuing && !restarting && restartButton.isPressed()) {
-//            final String text = ((I18NBundle) assetManager.get("lang/strings")).get("restart").substring(0, 1);
-//            restartButton.setText(text);
-
             menu = false;
             continuing = false;
             restarting = true;
             StateManager.changeState(new GameplayState(assetManager));
         } else if (!menu && !continuing && !restarting && !continuePressed && continueButton.isPressed()) {
-//            final String text = ((I18NBundle) assetManager.get("lang/strings")).get("continue").substring(0, 1);
-//            continueButton.setText(text);
-
             menu = false;
             continuing = false;
             restarting = false;
             continuePressed = true;
-            DoubleJump.rewardedAd.playVideo();
+            if (money.getValue() >= continueCost.getValue()) {
+                int m = money.getValue() - continueCost.getValue();
+                continuing = true;
+                gameInfo.setContinued(true);
+
+                m -= gameInfo.getScore();
+                preferences.putInteger(Prefs.MONEY_KEY, m);
+
+                preferences.flush();
+
+                StateManager.changeState(new GameplayState(assetManager, gameInfo));
+            } else {
+                DoubleJump.rewardedAd.playVideo();
+            }
         }
     }
 
@@ -319,8 +321,6 @@ public class GameOverState extends State {
             final float scaleX = 24.0f / restartButton.getWidth();
             final float scaleY = 24.0f / restartButton.getHeight();
             continueButton.setY(Ease.quadIn.apply(ground.getHeight() + 10, -continueButton.getHeight(), percentage));
-//            restartButton.setWidth(Ease.quadIn.apply(getWidth() / 3.0f, 24, percentage));
-//            restartButton.setHeight(Ease.quadIn.apply(64, 24, percentage));
             restartButton.setScaleX(Ease.quadIn.apply(1, scaleX, percentage));
             restartButton.setScaleY(Ease.quadIn.apply(1, scaleY, percentage));
             restartButton.setX(Ease.quadOut.apply(restartButtonX, (getWidth() - restartButton.getWidth()) / 2, percentage));
@@ -330,8 +330,6 @@ public class GameOverState extends State {
             final float scaleX = 24.0f / continueButton.getWidth();
             final float scaleY = 24.0f / continueButton.getHeight();
             restartButton.setY(Ease.quadIn.apply(ground.getHeight() + 10, -restartButton.getHeight(), percentage));
-//            continueButton.setWidth(Ease.quadIn.apply(getWidth() / 3.0f, 24, percentage));
-//            continueButton.setHeight(Ease.quadIn.apply(64, 24, percentage));
             continueButton.setScaleX(Ease.quadIn.apply(1, scaleX, percentage));
             continueButton.setScaleY(Ease.quadIn.apply(1, scaleY, percentage));
             continueButton.setX(Ease.quadOut.apply(continueButtonX, (getWidth() - continueButton.getWidth()) / 2, percentage));

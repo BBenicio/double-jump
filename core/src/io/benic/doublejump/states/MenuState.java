@@ -64,8 +64,6 @@ public class MenuState extends State {
     private final ClickListener clickListener = new ClickListener() {
         @Override
         public void clicked(InputEvent event, float x, float y) {
-            // if (!going && !soundButton.isOver() && !achievementButton.isOver() && !leaderboardButton.isOver() && !shopButton.isOver()
-            //         && !shopOpen && x < money.getX() && y > money.getY() + money.getHeight()) {
             if (!going && !shopOpen && y > shopButton.getY() + shopButton.getHeight() && y < soundButton.getY()) {
                 going = true;
                 StateManager.changeState(new GameplayState(assetManager));
@@ -124,8 +122,6 @@ public class MenuState extends State {
             if (DoubleJump.rewardedAd != null) {
                 DoubleJump.rewardedAd.playVideo();
             }
-
-            // shop.setPosition(getWidth() / 2, getHeight() / 2);
         }
     };
 
@@ -209,6 +205,11 @@ public class MenuState extends State {
         shopOpen = false;
 
         money = new Money(small, atlas.findRegion("box"), preferences.getInteger(Prefs.MONEY_KEY, 0));
+        if (money.getValue() < 0) {
+            money.setValue(0);
+            preferences.putInteger(Prefs.MONEY_KEY, 0);
+            preferences.flush();
+        }
         money.setPosition(getWidth() - money.getWidth() - 5, -money.getHeight());
         money.setColor(DoubleJump.whiteOnBlack ? Color.BLACK : Color.WHITE);
         stage.addActor(money);

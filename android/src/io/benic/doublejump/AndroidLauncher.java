@@ -16,7 +16,7 @@ public class AndroidLauncher extends AndroidApplication {
 		super.onCreate(savedInstanceState);
 		// My publisher code: ca-app-pub-2833633163238735~3983472696
 		// Google Test: ca-app-pub-3940256099942544~3347511713
-		MobileAds.initialize(this, "ca-app-pub-3940256099942544~3347511713");
+		MobileAds.initialize(this, "ca-app-pub-2833633163238735~3983472696");
 
 		AndroidApplicationConfiguration config = new AndroidApplicationConfiguration();
 		config.useImmersiveMode = true;

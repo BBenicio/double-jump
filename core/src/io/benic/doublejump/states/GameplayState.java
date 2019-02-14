@@ -30,9 +30,10 @@ public class GameplayState extends State {
     private static final String LOG_TAG = "GameplayState";
 
     private static final long COLOR_CHANGE_INTERVAL = 20000;
-//    private static final long COLOR_CHANGE_INTERVAL = 4000;
-    public static final float TUTORIAL_FIRST_PAUSE = 5.280f;
-    public static final float TUTORIAL_SECOND_PAUSE = 5.750f;
+    // public static final float TUTORIAL_FIRST_PAUSE = 5.280f;
+    // public static final float TUTORIAL_SECOND_PAUSE = 5.750f;
+    public static final float TUTORIAL_FIRST_PAUSE = 2.780f;
+    public static final float TUTORIAL_SECOND_PAUSE = 3.250f;
 
     private Image ground;
     private Player player;
@@ -67,19 +68,6 @@ public class GameplayState extends State {
 
     private GameInfo gameInfo;
 
-    /*private ClickListener clickListener = new ClickListener() {
-        @Override
-        public void clicked(InputEvent event, float x, float y) {
-            if (paused || pauseButton.isOver()) {
-                return;
-            }
-
-            if (player.canJump()) {
-                player.jump();
-            }
-        }
-    };*/
-
     private InputListener inputListener = new InputListener() {
         @Override
         public boolean touchDown(InputEvent event, float x, float y, int pointer, int button) {
@@ -97,11 +85,13 @@ public class GameplayState extends State {
                 }
 
                 if (tutorialPause) {
+                    pausedFor = TimeUtils.millis() - pausedFor;
+                    changeTime += pausedFor;
+
                     tutorialPause = false;
                     tutorialLabel.setVisible(false);
                     if (tutorialState == 1) {
                         tutorialLabel.setText(tutorialTexts[tutorialState]);
-                        // tutorialLabel.setX(getWidth() / 2 - tutorialLabel.getWidth() - 15);
                     }
                 }
             }
@@ -129,7 +119,7 @@ public class GameplayState extends State {
         final I18NBundle bundle = assetManager.get("lang/strings");
         final BitmapFont medium = assetManager.get("fonts/medium.fnt");
 
-        tutorialState = Prefs.getPreferences().getInteger("tutorial", 0);
+        tutorialState = Prefs.getPreferences().getInteger(Prefs.TUTORIAL_KEY, 0);
 
         changeTime = TimeUtils.millis();
 
@@ -188,7 +178,6 @@ public class GameplayState extends State {
         hitSound = assetManager.get("sound/hit.wav");
         gameOverSound = assetManager.get("sound/game_over.wav");
 
-//        stage.addListener(clickListener);
         stage.addListener(inputListener);
     }
 
@@ -239,6 +228,7 @@ public class GameplayState extends State {
                 }
                 Gdx.app.log(LOG_TAG, "Player dead!");
                 gameOverSound.play(DoubleJump.sound ? 1.0f : 0);
+                gameInfo.setDeaths(gameInfo.getDeaths() + 1);
             }
         }
 
@@ -262,13 +252,15 @@ public class GameplayState extends State {
         gameInfo.setScore(previousScore + obstacleManager.getPassed());
 
         tutorialTimer += Gdx.graphics.getRawDeltaTime();
-        if (tutorialState == 0 && tutorialTimer > TUTORIAL_FIRST_PAUSE) {
+        if (tutorialState == 0 && tutorialTimer - obstacleManager.getFirstSpawnTime() > TUTORIAL_FIRST_PAUSE) {
+            pausedFor = now;
             tutorialPause = true;
             ++tutorialState;
             tutorialLabel.setVisible(true);
             Gdx.app.log(LOG_TAG, "First tutorial pause");
-        } else if (tutorialState == 1 && tutorialTimer > TUTORIAL_SECOND_PAUSE) {
+        } else if (tutorialState == 1 && tutorialTimer - obstacleManager.getFirstSpawnTime() > TUTORIAL_SECOND_PAUSE) {
             if (player.canJump()) {
+                pausedFor = now;
                 tutorialPause = true;
                 tutorialLabel.setVisible(true);
                 Gdx.app.log(LOG_TAG, "Final tutorial pause");
