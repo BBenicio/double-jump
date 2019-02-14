@@ -30,10 +30,8 @@ public class GameplayState extends State {
     private static final String LOG_TAG = "GameplayState";
 
     private static final long COLOR_CHANGE_INTERVAL = 20000;
-    // public static final float TUTORIAL_FIRST_PAUSE = 5.280f;
-    // public static final float TUTORIAL_SECOND_PAUSE = 5.750f;
-    public static final float TUTORIAL_FIRST_PAUSE = 2.780f;
-    public static final float TUTORIAL_SECOND_PAUSE = 3.250f;
+    private static final float TUTORIAL_FIRST_PAUSE = 55;
+    private static final float TUTORIAL_SECOND_PAUSE = 7;
 
     private Image ground;
     private Player player;
@@ -56,7 +54,6 @@ public class GameplayState extends State {
 
     private Label tutorialLabel;
     private String[] tutorialTexts = new String[2];
-    private float tutorialTimer = 0;
     private int tutorialState = 0;
     private boolean tutorialPause = false;
 
@@ -251,21 +248,22 @@ public class GameplayState extends State {
 
         gameInfo.setScore(previousScore + obstacleManager.getPassed());
 
-        tutorialTimer += Gdx.graphics.getRawDeltaTime();
-        if (tutorialState == 0 && tutorialTimer - obstacleManager.getFirstSpawnTime() > TUTORIAL_FIRST_PAUSE) {
-            pausedFor = now;
-            tutorialPause = true;
-            ++tutorialState;
-            tutorialLabel.setVisible(true);
-            Gdx.app.log(LOG_TAG, "First tutorial pause");
-        } else if (tutorialState == 1 && tutorialTimer - obstacleManager.getFirstSpawnTime() > TUTORIAL_SECOND_PAUSE) {
-            if (player.canJump()) {
+        if (tutorialState < 2) {
+            if (tutorialState == 0 && Math.abs(getWidth() / 2 - obstacleManager.getFirstObstacleX()) <= TUTORIAL_FIRST_PAUSE) {
                 pausedFor = now;
                 tutorialPause = true;
+                ++tutorialState;
                 tutorialLabel.setVisible(true);
-                Gdx.app.log(LOG_TAG, "Final tutorial pause");
+                Gdx.app.log(LOG_TAG, "First tutorial pause");
+            } else if (tutorialState == 1 && Math.abs(getWidth() / 2 - obstacleManager.getFirstObstacleX()) <= TUTORIAL_SECOND_PAUSE) {
+                if (player.canJump()) {
+                    pausedFor = now;
+                    tutorialPause = true;
+                    tutorialLabel.setVisible(true);
+                    Gdx.app.log(LOG_TAG, "Final tutorial pause");
+                }
+                ++tutorialState;
             }
-            ++tutorialState;
         }
     }
 
