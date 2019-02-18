@@ -225,6 +225,7 @@ public class GameplayState extends State {
                 }
                 Gdx.app.log(LOG_TAG, "Player dead!");
                 gameOverSound.play(DoubleJump.sound ? 1.0f : 0);
+                obstacleManager.updateGameInfo(gameInfo);
                 gameInfo.setDeaths(gameInfo.getDeaths() + 1);
             }
         }

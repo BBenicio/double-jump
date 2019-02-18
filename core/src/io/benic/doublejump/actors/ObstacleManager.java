@@ -59,11 +59,15 @@ public class ObstacleManager extends Group {
             spawnInterval = gameInfo.getSpawnInterval();
             speed = gameInfo.getSpeed();
         } else {
-            gameInfo.setCountChances(countChances);
-            gameInfo.setPositionChances(positionChances);
-            gameInfo.setSpawnInterval(spawnInterval);
-            gameInfo.setSpeed(speed);
+            updateGameInfo(gameInfo);
         }
+    }
+
+    public void updateGameInfo(GameInfo gameInfo) {
+        gameInfo.setCountChances(countChances);
+        gameInfo.setPositionChances(positionChances);
+        gameInfo.setSpawnInterval(spawnInterval);
+        gameInfo.setSpeed(speed);
     }
 
     @Override

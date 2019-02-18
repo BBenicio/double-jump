@@ -137,7 +137,8 @@ public class GameOverState extends State {
         continueCost.setColor(fgColor);
         continueButton.addActor(continueCost);
 
-        if (continueCost.getValue() > moneyAmount) {
+        // you can only pay if you had the money beforehand
+        if (continueCost.getValue() > moneyAmount - gameInfo.getScore()) {
             if (!DoubleJump.adLoaded) {
                 continueButton.setDisabled(true);
                 continueButton.setVisible(false);
@@ -219,6 +220,7 @@ public class GameOverState extends State {
         }
 
         preferences.putInteger(Prefs.TUTORIAL_KEY, 2);
+        preferences.flush();
     }
 
     @Override
